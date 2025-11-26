@@ -174,9 +174,9 @@ Key folders & files:
 ## 📝 Copyright
 
 # Made by Team Code Enforcers   
-**Mehul Raj**
-**Vishal Baliyan**
-**Hritik Verma**
+**Mehul Raj**   
+**Vishal Baliyan**   
+**Hritik Verma**   
 
 ---
 
