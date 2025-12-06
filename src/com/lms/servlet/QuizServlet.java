@@ -134,20 +134,31 @@ public class QuizServlet extends HttpServlet {
     
     private void handleListQuizzes(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int courseId = Integer.parseInt(request.getParameter("courseId") != null ? 
-                                      request.getParameter("courseId") : "0");
+        String courseIdParam = request.getParameter("courseId");
         
-        if (courseId > 0) {
-            List<Quiz> quizzes = QuizDAO.getQuizzesByCourse(courseId);
-            request.setAttribute("quizzes", quizzes);
-            request.setAttribute("courseId", courseId);
+        // If courseId is not provided or invalid, show all courses
+        if (courseIdParam == null || courseIdParam.trim().isEmpty()) {
+            response.sendRedirect("course-list.jsp");
+            return;
+        }
+        
+        try {
+            int courseId = Integer.parseInt(courseIdParam.trim());
             
-            if (isInstructor(user)) {
-                request.getRequestDispatcher("quiz-list-instructor.jsp").forward(request, response);
+            if (courseId > 0) {
+                List<Quiz> quizzes = QuizDAO.getQuizzesByCourse(courseId);
+                request.setAttribute("quizzes", quizzes);
+                request.setAttribute("courseId", courseId);
+                
+                if (isInstructor(user)) {
+                    request.getRequestDispatcher("quiz-list-instructor.jsp").forward(request, response);
+                } else {
+                    request.getRequestDispatcher("quiz-list.jsp").forward(request, response);
+                }
             } else {
-                request.getRequestDispatcher("quiz-list.jsp").forward(request, response);
+                response.sendRedirect("course-list.jsp");
             }
-        } else {
+        } catch (NumberFormatException e) {
             response.sendRedirect("course-list.jsp");
         }
     }
@@ -184,8 +195,23 @@ public class QuizServlet extends HttpServlet {
             int courseId = (courseIdParam != null && !courseIdParam.trim().isEmpty()) ? 
                           Integer.parseInt(courseIdParam) : 0;
             
+            // Validate courseId
+            if (courseId <= 0) {
+                request.setAttribute("error", "Invalid Course. Please select a valid course.");
+                request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+                return;
+            }
+            
             String title = request.getParameter("title");
             String description = request.getParameter("description");
+            
+            // Validate title
+            if (title == null || title.trim().isEmpty()) {
+                request.setAttribute("error", "Quiz title is required.");
+                request.setAttribute("courseId", courseId);
+                request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+                return;
+            }
             
             String durationParam = request.getParameter("durationMinutes");
             int durationMinutes = (durationParam != null && !durationParam.trim().isEmpty()) ? 
@@ -203,16 +229,21 @@ public class QuizServlet extends HttpServlet {
             int quizId = QuizDAO.createQuiz(quiz);
             
             if (quizId > 0) {
-                request.setAttribute("quizId", quizId);
-                request.setAttribute("courseId", courseId);
                 response.sendRedirect("quiz?action=edit&quizId=" + quizId);
             } else {
-                request.setAttribute("error", "Failed to create quiz");
+                request.setAttribute("error", "Failed to create quiz. Please check the course ID and try again.");
+                request.setAttribute("courseId", courseId);
                 request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid input: Please check all numeric fields");
+            request.setAttribute("error", "Invalid input: Please check all numeric fields. " + e.getMessage());
+            request.setAttribute("courseId", request.getParameter("courseId"));
             request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("error", "Error creating quiz: " + e.getMessage());
+            request.setAttribute("courseId", request.getParameter("courseId"));
+            request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+            e.printStackTrace();
         }
     }
     
