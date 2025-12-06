@@ -102,6 +102,23 @@ CREATE TABLE quiz_attempts (
     FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- Quiz Attempt Answers Table
+-- Stores each student's answer for a question in a given attempt.
+CREATE TABLE IF NOT EXISTS quiz_attempt_answers (
+    answer_id INT PRIMARY KEY AUTO_INCREMENT,
+    attempt_id INT NOT NULL,
+    question_id INT NOT NULL,
+    -- legacy column name expected by DAO: 'answer'
+    answer TEXT,
+    answer_text TEXT,
+    is_correct BOOLEAN DEFAULT NULL,
+    awarded_points INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_attempt_question (attempt_id, question_id),
+    FOREIGN KEY (attempt_id) REFERENCES quiz_attempts(attempt_id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES quiz_questions(question_id) ON DELETE CASCADE
+);
+
 -- Enrollments Table
 CREATE TABLE enrollments (
     enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
