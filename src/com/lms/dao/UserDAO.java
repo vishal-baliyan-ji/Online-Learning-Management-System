@@ -2,6 +2,7 @@ package com.lms.dao;
 
 import com.lms.model.User;
 import com.lms.util.DBConnection;
+import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,9 @@ public class UserDAO {
             
             pstmt.setString(1, user.getName());
             pstmt.setString(2, user.getEmail());
-            pstmt.setString(3, user.getPassword());
+            // Hash the password before storing
+            String hashed = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+            pstmt.setString(3, hashed);
             pstmt.setString(4, user.getRole());
             
             int rowsAffected = pstmt.executeUpdate();
@@ -152,28 +155,31 @@ public class UserDAO {
     
     // User login authentication
     public User authenticateUser(String email, String password) {
-        String sql = "SELECT user_id, name, email, role FROM users WHERE email = ? AND password = ?";
-        
+        String sql = "SELECT user_id, name, email, role, password FROM users WHERE email = ?";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, email);
-            pstmt.setString(2, password);
             ResultSet rs = pstmt.executeQuery();
-            
+
             if (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setName(rs.getString("name"));
-                user.setEmail(rs.getString("email"));
-                user.setRole(rs.getString("role"));
-                return user;
+                String storedHash = rs.getString("password");
+                // Verify password using BCrypt
+                if (storedHash != null && BCrypt.checkpw(password, storedHash)) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setName(rs.getString("name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setRole(rs.getString("role"));
+                    return user;
+                }
             }
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return null;
     }
     

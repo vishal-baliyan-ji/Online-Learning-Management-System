@@ -115,12 +115,21 @@ CREATE TABLE system_settings (
 );
 
 -- Sample Data
+-- Sample Data (passwords MUST be stored as bcrypt hashes)
+-- IMPORTANT: This project now uses BCrypt for password hashing.
+-- Do NOT leave plaintext passwords here. Replace the placeholders below with
+-- bcrypt hashes produced by a secure tool (e.g., `PasswordUtil` in src).
+-- Example: generate a hash locally using the project's PasswordUtil helper:
+--   mvn clean package
+--   mvn exec:java -Dexec.mainClass=com.lms.util.PasswordUtil -Dexec.args="admin123"
+-- Then replace <bcrypt-hash-for-admin123> with the generated hash string.
+
 INSERT INTO users (name, email, password, role) VALUES
-('Admin User', 'admin@lms.com', 'admin123', 'admin'),
-('John Instructor', 'john@lms.com', 'instructor123', 'instructor'),
-('Jane Student', 'jane@lms.com', 'student123', 'student'),
-('Bob Instructor', 'bob@lms.com', 'instructor123', 'instructor'),
-('Alice Student', 'alice@lms.com', 'student123', 'student');
+('Admin User', 'admin@lms.com', '$2a$10$2ye1mjik.De2f0CNAvsKmOOHl6QWWF0adGqHooL8EIiPVF48zW9A2', 'admin'),
+('John Instructor', 'john@lms.com', '$2a$10$SF..Dub.2tY6ByAPkA9QCOYAsPB1V0DQuKj077o.tpoOLX3VKKreO', 'instructor'),
+('Jane Student', 'jane@lms.com', '$2a$10$gN.DuHvwAXV074FdgqQQweZ6Ka.4.1q8Uf52.JXPv85pth0IvD0vy', 'student'),
+('Bob Instructor', 'bob@lms.com', '$2a$10$SF..Dub.2tY6ByAPkA9QCOYAsPB1V0DQuKj077o.tpoOLX3VKKreO', 'instructor'),
+('Alice Student', 'alice@lms.com', '$2a$10$gN.DuHvwAXV074FdgqQQweZ6Ka.4.1q8Uf52.JXPv85pth0IvD0vy', 'student');
 
 INSERT INTO courses (title, description, syllabus, instructor_id) VALUES
 ('Java Programming', 'Learn Java from basics to advanced', 'Week 1: Basics, Week 2: OOP, Week 3: Collections', 2),
@@ -137,3 +146,12 @@ INSERT INTO assignments (course_id, title, description, due_date, max_score) VAL
 (1, 'Java Basics Assignment', 'Complete the exercises', '2025-12-01', 100),
 (1, 'OOP Project', 'Build a small OOP project', '2025-12-15', 150),
 (2, 'HTML/CSS Portfolio', 'Create your portfolio', '2025-12-10', 100);
+
+-- NOTE: Sample users have been seeded with bcrypt-hashed passwords:
+-- admin@lms.com / admin123
+-- john@lms.com / instructor123
+-- jane@lms.com / student123
+-- bob@lms.com / instructor123
+-- alice@lms.com / student123
+-- 
+-- You can now import this schema directly into your DBMS and log in with these credentials.

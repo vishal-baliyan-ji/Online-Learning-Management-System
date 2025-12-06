@@ -14,7 +14,7 @@ public class DBConnection {
     // Database credentials
     private static final String URL = "jdbc:mysql://localhost:3306/lms_db?useSSL=false&serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = "YourPassword"; // Change this to your MySQL password
+    private static final String PASSWORD = "Roomno775"; // Change this to your MySQL password
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
     
     // Static block to load the JDBC driver
