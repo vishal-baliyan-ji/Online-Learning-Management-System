@@ -507,6 +507,8 @@ public class QuizServlet extends HttpServlet {
             Quiz quiz = QuizDAO.getQuizById(attempt.getQuizId());
             List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
             java.util.Map<Integer, String> answers = QuizAttemptDAO.getAnswersForAttempt(attemptId);
+            // DEBUG: print answers map to server console for troubleshooting
+            System.out.println("[DEBUG] viewResults - attemptId=" + attemptId + " answers=" + answers);
 
             request.setAttribute("quiz", quiz);
             request.setAttribute("attempt", attempt);
