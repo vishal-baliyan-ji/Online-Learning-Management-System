@@ -9,291 +9,142 @@ A simple Learning Management System implemented using Java Servlets, JSP (JSTL),
 - Admin user management (CRUD users)
 - Instructor: create/edit courses, assignments, add attachment files
 - Student: enroll/drop/re-enroll courses, view "My Courses", view/submit assignments
-- File upload: assignment attachments and student submissions
-- Enrollment status management and progress updates
-- Simple role-based access checks (admin-only user management)
+# Learning Management System (LMS)
+
+Welcome — this repository contains a small Learning Management System (LMS) built with Java Servlets, JSP (JSTL), and MySQL. It supports three roles: Admin, Instructor, and Student, with features for course management, assignments, enrollments, and a quiz system.
+
+This README is written for developers who want to run or extend the project locally.
 
 ---
 
-## 🧰 Tech stack
+## Highlights
 
-- Java 8 (source/target)
-- Java Servlets and JSP with JSTL
+- Instructor and student workflows (courses, assignments, enrollments)
+- Assignment file upload and submission handling
+- Quiz subsystem (create, publish, attempt, grade)
+- Simple role-based checks (admin, instructor, student)
+
+---
+
+## Tech Stack
+
+- Java 8
+- Servlets + JSP (JSTL)
 - MySQL 8 (or compatible)
-- Maven for build
-- Apache Commons FileUpload & Commons IO for file uploads
+- Maven (build)
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
-- Java JDK 8 (install and set JAVA_HOME)
+- Java JDK 8 (set `JAVA_HOME`)
 - Maven 3.x
 - MySQL (8.0 recommended)
-- Apache Tomcat (8, 9, or 10) / or run via the Maven tomcat plugin
+- Apache Tomcat (8/9/10) or run with the Tomcat Maven plugin
 
 ---
 
-## 🛠️ Setup and Configuration
+## Quick Setup
 
-1. Clone this repository into a workspace.
+1. Clone the repository.
+2. Import the database schema and seed data (see `db/database_schema.sql`). The schema includes tables for users, courses, assignments, quizzes and related data.
 
-2. Database setup
-   - Create the database and sample data using `db/database_schema.sql`:
+   Note: the seed users in `db/database_schema.sql` use BCrypt-hashed passwords (NOT plaintext). See the "Security & passwords" section below.
 
-```powershell
-# Run in a MySQL client:
-mysql -u root -p < db/database_schema.sql
-```
+3. Update database credentials for local development:
 
-   - Default sample accounts injected in `database_schema.sql`:
-     - Admin: `admin@lms.com` / `admin123`
-     - Instructors and students also seeded for dev/testing
+   - Edit `src/com/lms/util/DBConnection.java` or set environment variables and adjust the helper to read them. For local testing, the app uses `jdbc:mysql://localhost:3306/lms_db`.
 
-3. Configure database credentials
-   - Update `src/com/lms/util/DBConnection.java` with your MySQL username and password.
-   - By default, `DBConnection` uses JDBC URL `jdbc:mysql://localhost:3306/lms_db`.
-   - IMPORTANT: This project stores credentials in code for simplicity; for production, use environment variables or a secure store.
-
-4. (Optional) If using the Tomcat manager plugin (`pom.xml`):
-   - Configure your Tomcat Manager credentials in `~/.m2/settings.xml` with server id `TomcatServer` to allow `mvn tomcat7:deploy` or similar.
-
----
-
-## 📦 Build and Run (local)
-
-1. Build the application (creates a WAR file):
+4. Build and run:
 
 ```powershell
 mvn clean package
-```
-
-- The generated artifact: `build/LMS_Project.war` (as defined in `pom.xml`).
-
-2. Run using the Tomcat Maven plugin (for development / quick local testing):
-
-```powershell
+  - View individual student attempts
 mvn tomcat7:run
 ```
 
-- This starts Tomcat (by default on port 8080) and deploys the app to `http://localhost:8080/LMS_Project` or `http://localhost:8080` depending on plugin config.
-
-3. Deploy the WAR to Tomcat manually:
-   - Copy the `build/LMS_Project.war` to your Tomcat's `webapps/` directory and start/restart the Tomcat server.
+The generated WAR is `build/LMS_Project.war`.
 
 ---
 
-## 🧭 Application Endpoints / URLs
+## Database & Passwords
 
-The application uses servlet mappings with query `action` parameters. Main servlet endpoints:
+- The project ships with `db/database_schema.sql` which creates the `lms_db` schema and inserts a set of seed users.
+- The seed passwords are stored as BCrypt hashes. The app uses BCrypt to hash passwords on user creation and to verify logins (see `src/com/lms/util/PasswordUtil.java` and `src/com/lms/dao/UserDAO.java`).
+- Do NOT convert these hashes back to plaintext or store real credentials here. The seeded accounts are for local development only.
+
+If you need to regenerate a test bcrypt hash locally:
+
+```powershell
+  - See all submissions in one place
+```
+
+---
+
+## Endpoints (overview)
 
 - `GET /login` — Login page
 - `POST /login` — Authenticate user
 - `GET /logout` — Logout
+- `GET/POST /user` — Admin user management (action=list|add|edit|delete)
+- `GET/POST /course` — Course flows (action=list|view|add|edit|delete)
+- `GET/POST /assignment` — Assignment flows (submit, list, grade)
+- `GET/POST /enrollment` — Enroll/drop flows
+- `GET/POST /quiz` — Quiz subsystem (list, create, start, submit, results, grade)
 
-- `GET/POST /user` — User management (Admin)
-  - Query parameters: `action=list|add|edit|delete`
-
-- `GET/POST /course` — Course management
-  - Query parameters: `action=list|add|edit|delete|view`
-
-- `GET/POST /assignment` — Assignment management
-  - Query parameters: `action=list|add|edit|delete|view|my-assignments|submit|submissions|view-submission|grade`
-
-- `GET/POST /enrollment` — Enrollment management
-  - Query parameters: `action=list|my-courses|enroll|drop`
-
-Tip: Many flows use `action` and additional query parameters such as `id`, `assignmentId`, `courseId`, etc.
+See the servlet mappings in the `src/com/lms/servlet` package for details.
 
 ---
 
-## 🗃️ Directory structure
+## Directory layout
 
-Key folders & files:
-
-- `src/` — Java source code (servlets, DAOs, models, util)
-  - `src/com/lms/servlet/` — Servlets (User, Course, Enrollment, Assignment, Login, Logout)
-  - `src/com/lms/dao/` — Data Access Objects
-  - `src/com/lms/model/` — Model classes (User, Course, Assignment, Enrollment, etc.)
-  - `src/com/lms/util/DBConnection.java` — Database connection helper
-
-- `WebContent/` — web app files (JSPs, CSS, images)
-  - `WebContent/css/style.css` — consolidated app styles (green/white theme)
-  - `WebContent/uploads` — store assignment attachment files (created at runtime)
-  - `WebContent/submissions` — store student submission files (created at runtime)
-
-- `db/database_schema.sql` — SQL schema with seed data
-- `pom.xml` — Maven build file
+- `src/` — Java source (servlets, DAOs, models, utils)
+- `WebContent/` — JSP views, static assets
+- `db/database_schema.sql` — schema + seed data
+- `pom.xml` — Maven build
 
 ---
 
-## 🔐 Security & Notes
+## Security & passwords (clear statement)
 
-- Passwords in SQL seed data and `DBConnection` are plain-text for development convenience. Never use plain-text passwords in production — use hashing (bcrypt) and secure storage.
-- Uploaded files are stored inside `WebContent/uploads` and `WebContent/submissions` and served directly. For production, prefer:
-  - Storing files outside the webroot and using a secure download servlet with authorization checks
-  - Virus scanning & file type validation
-  - Enforcing upload file size limits (currently 5 MB for assignment attachments, 10 MB for student submissions in code)
-- Role checks: `UserServlet` now enforces admin-only actions; JSPs also have session checks. For robust enforcement, consider a Servlet Filter to centralize authorization.
-- CSRF protection is not implemented. Add anti-CSRF tokens to forms and server-side validation.
-- Session timeouts and login handling: Use HTTPS in production and secure cookie flags.
+- Seed and application passwords are handled using BCrypt. The project does not rely on plaintext passwords for login verification.
+- For development the seed users are present in `db/database_schema.sql` as hashed values; for production, use a secure seeding/migration strategy and never commit real credentials.
+- Replace any hard-coded credentials in `DBConnection.java` with environment variables before deploying to production.
 
----
+Security recommendations:
 
-## ✅ Development Tips
-
-- To test DB connection quickly, run: `DBConnection.main()` via IDE or execute after building.
-- The application uses `commons-fileupload` with a size max configured in `AssignmentServlet`. If you need larger uploads, update the sizes and ensure Tomcat allows larger HTTP request sizes.
-- Replace `DBConnection` credentials with environment variables or a config file for safety.
-- Use `mvn -DskipTests=true package` if you add tests and want to quick-build.
+- Enable HTTPS and secure cookies in production.
+- Add CSRF protection (anti-CSRF tokens for forms).
+- Centralize authorization with servlet filters.
+- Validate and sanitize all user input.
 
 ---
 
-## 📌 Known Limitations & To-Do
+## Quiz subsystem (summary)
 
-- No password hashing (bcrypt recommended)
-- No centralized role filter — consider adding an `AdminFilter` and `AuthFilter`
-- No automated unit/integration tests (consider adding JUnit + integration tests)
-- File download served directly by JSP links — consider a download servlet to check access
-- No CSRF protections and limited input sanitization/validation — must be hardened for production
+- Instructors can create quizzes, add questions (multiple-choice, true/false, short answer), publish quizzes, and grade attempts.
+- Students can view published quizzes, take them (timer + auto-submit), and review results.
+- Relevant files: `src/com/lms/servlet/QuizServlet.java`, `src/com/lms/dao/*Quiz*.java`, and JSPs under `WebContent/` containing `quiz-*.jsp`.
 
 ---
 
-## 🧪 Manual Acceptance Tests
+## Development tips
 
-- Build and deploy, login as `admin@lms.com` / `admin123` and check user CRUD
-- Login as instructor and create a course and an assignment with an attachment
-- Enroll a student in a course and submit an assignment (file)
-- Grade a submission as instructor, and verify the student's `view-submission.jsp` shows a grade
-- Drop a course and attempt re-enroll; verify re-enroll success
+- To test DB connection quickly, use `DBConnection.main()` in your IDE.
+- If you change file upload limits, ensure Tomcat's connector properties allow larger requests.
+- Use `mvn -DskipTests=true package` to speed up iterative builds.
+
+---
+
+## Known limitations
+
+- No automated unit/integration tests included — adding JUnit and basic integration tests is recommended.
+- File downloads are served via JSPs; consider a secure download servlet for production.
+- CSRF protection is not implemented.
 
 ---
 
 
-
-## Acknowledgements
-
-Developed and maintained by Team Code Enforcers.
-
-Contributors:
-- Mehul Raj
-- Vishal Baliyan
-- Hritik Verma
-
----
-
-
-## Additional documentation (merged)
-
-For convenience, we've included two supplemental documents below: guidance about bcrypt password hashes used for seed data, and the quiz system documentation. These were merged here so you can find project details in one place.
-
----
-
-### BCrypt: seed hashes and usage
-
-The project uses BCrypt for secure password hashing. Seed users in `db/database_schema.sql` have bcrypt hashes; use the examples below only for local development.
-
-## Database Schema Update
-
-The file `db/database_schema.sql` has been updated with **verified bcrypt hashes** for the seed users.
-
-### Seed User Credentials
-
-| Email | Password | Role | Bcrypt Hash |
-|-------|----------|------|-------------|
-| admin@lms.com | admin123 | admin | `$2a$10$2ye1mjik.De2f0CNAvsKmOOHl6QWWF0adGqHooL8EIiPVF48zW9A2` |
-| john@lms.com | instructor123 | instructor | `$2a$10$SF..Dub.2tY6ByAPkA9QCOYAsPB1V0DQuKj077o.tpoOLX3VKKreO` |
-| jane@lms.com | student123 | student | `$2a$10$gN.DuHvwAXV074FdgqQQweZ6Ka.4.1q8Uf52.JXPv85pth0IvD0vy` |
-| bob@lms.com | instructor123 | instructor | `$2a$10$SF..Dub.2tY6ByAPkA9QCOYAsPB1V0DQuKj077o.tpoOLX3VKKreO` |
-| alice@lms.com | student123 | student | `$2a$10$gN.DuHvwAXV074FdgqQQweZ6Ka.4.1q8Uf52.JXPv85pth0IvD0vy` |
-
-**These hashes have been verified and work correctly.**
-
-## How to Use
-
-### Step 1: Import Database Schema
-```sql
--- In MySQL client or MySQL Workbench:
-SOURCE db/database_schema.sql;
--- OR manually execute the contents of db/database_schema.sql
-```
-
-### Step 2: Build the Project
-```bash
-mvn clean package
-```
-
-### Step 3: Deploy and Login
-- Deploy `build/LMS_Project.war` to your Tomcat server
-- Navigate to the login page
-- Use any of the seed credentials above, e.g.:
-  - Email: `admin@lms.com`
-  - Password: `admin123`
-
-## Creating New Users
-
-When you create new users through the application's admin panel:
-1. The password you enter will be automatically hashed using bcrypt
-2. The hash will be securely stored in the database
-3. On login, the user's entered password is verified against the stored hash
-
-## Technical Details
-
-- **Library**: org.mindrot:jbcrypt:0.4
-- **Hash Format**: BCrypt with 10 salt rounds (format: `$2a$10$...`)
-- **Implementation**:
-  - `src/com/lms/dao/UserDAO.java` - Hashing on user creation, verification on login
-  - `src/com/lms/util/PasswordUtil.java` - Utility to generate hashes for testing/migration
-
-## Troubleshooting
-
-If you encounter "Invalid email or password" errors:
-
-1. **Verify Database Import**: Confirm that `db/database_schema.sql` was successfully imported into your MySQL database
-2. **Check Hash Format**: Query your database: `SELECT email, password FROM users;` - Hashes should start with `$2a$10$` and be 60 characters long
-3. **Test with New User**: Create a new user through the admin panel and try logging in - this confirms bcrypt is working
-4. **Connection String**: Ensure `src/com/lms/util/DBConnection.java` connects to the correct database and user
-
-## Security Notes
-
-- **Never store plaintext passwords** - all passwords must be hashed before database insertion
-- **All login attempts** use bcrypt verification, not plaintext comparison
-- The bcrypt library uses strong salt generation (automatically done via `BCrypt.gensalt()`)
-
----
-
-### QUIZ_SYSTEM.md
-
-# Quiz System Documentation
-
-## Overview
-The LMS now includes a comprehensive quiz management system that allows instructors to create, manage, and grade quizzes, while students can take quizzes with automatic grading and timing.
-
-## Features
-
-### For Instructors
-- **Create Quizzes**: Create new quizzes for any course with custom settings
-  - Set quiz title and description
-  - Configure time limit (in minutes)
-  - Set maximum score and passing score
-  - Define custom questions and answer options
-
-- **Manage Questions**: Add multiple types of questions
-  - Multiple Choice (A, B, C, D options)
-  - True/False questions
-  - Short Answer questions
-  - Set points per question
-  - Edit and delete questions
-
-- **Publish Quizzes**: Control when quizzes become available to students
-  - Save as draft before publishing
-  - Publish when ready for students to take
-
-- **Grade Submissions**: Review and grade student quiz attempts
-  - View individual student attempts
-  - See all submissions in one place
-  - Add feedback for students
-  - View score statistics
 
 ### For Students
 - **Browse Quizzes**: See all published quizzes in their courses
@@ -547,4 +398,12 @@ Possible additions:
 - Negative marking for wrong answers
 
 
+## Contributors
+
+Team Code Enforcers
+- Mehul Raj
+- Vishal Baliyan
+- Hritik Verma
+
+---
 
