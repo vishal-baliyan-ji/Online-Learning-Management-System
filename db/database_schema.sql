@@ -60,10 +60,46 @@ CREATE TABLE quizzes (
     course_id INT NOT NULL,
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    duration_minutes INT,
+    duration_minutes INT DEFAULT 30,
     max_score INT DEFAULT 100,
+    passing_score INT DEFAULT 60,
+    is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    published_date TIMESTAMP NULL,
     FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
+);
+
+-- Quiz Questions Table
+CREATE TABLE quiz_questions (
+    question_id INT PRIMARY KEY AUTO_INCREMENT,
+    quiz_id INT NOT NULL,
+    question_text TEXT NOT NULL,
+    question_type ENUM('multiple_choice', 'true_false', 'short_answer') DEFAULT 'multiple_choice',
+    option_a VARCHAR(500),
+    option_b VARCHAR(500),
+    option_c VARCHAR(500),
+    option_d VARCHAR(500),
+    correct_answer VARCHAR(500) NOT NULL,
+    points INT DEFAULT 1,
+    question_order INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id) ON DELETE CASCADE
+);
+
+-- Quiz Attempts Table (renamed from quiz_attempts)
+CREATE TABLE quiz_attempts (
+    attempt_id INT PRIMARY KEY AUTO_INCREMENT,
+    quiz_id INT NOT NULL,
+    student_id INT NOT NULL,
+    score INT DEFAULT 0,
+    status ENUM('in_progress', 'submitted', 'graded') DEFAULT 'in_progress',
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    submitted_at TIMESTAMP NULL,
+    graded_at TIMESTAMP NULL,
+    feedback TEXT,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- Enrollments Table
@@ -92,17 +128,6 @@ CREATE TABLE assignment_submissions (
     graded_at TIMESTAMP NULL,
     status ENUM('submitted', 'graded', 'pending') DEFAULT 'submitted',
     FOREIGN KEY (assignment_id) REFERENCES assignments(assignment_id) ON DELETE CASCADE,
-    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
--- Quiz Attempts Table
-CREATE TABLE quiz_attempts (
-    attempt_id INT PRIMARY KEY AUTO_INCREMENT,
-    quiz_id INT NOT NULL,
-    student_id INT NOT NULL,
-    score DECIMAL(5,2),
-    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
