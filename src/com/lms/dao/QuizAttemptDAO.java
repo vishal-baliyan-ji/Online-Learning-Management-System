@@ -113,6 +113,50 @@ public class QuizAttemptDAO {
         }
         return false;
     }
+
+    // Save student's answers for an attempt
+    public static boolean saveAnswers(int attemptId, java.util.Map<Integer, String> answers) {
+        String deleteQuery = "DELETE FROM quiz_attempt_answers WHERE attempt_id = ?";
+        String insertQuery = "INSERT INTO quiz_attempt_answers (attempt_id, question_id, answer) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection()) {
+            // delete any existing answers for this attempt (idempotent)
+            try (PreparedStatement del = conn.prepareStatement(deleteQuery)) {
+                del.setInt(1, attemptId);
+                del.executeUpdate();
+            }
+
+            try (PreparedStatement ins = conn.prepareStatement(insertQuery)) {
+                for (java.util.Map.Entry<Integer, String> e : answers.entrySet()) {
+                    ins.setInt(1, attemptId);
+                    ins.setInt(2, e.getKey());
+                    ins.setString(3, e.getValue());
+                    ins.addBatch();
+                }
+                ins.executeBatch();
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Retrieve student's answers for an attempt
+    public static java.util.Map<Integer, String> getAnswersForAttempt(int attemptId) {
+        java.util.Map<Integer, String> answers = new java.util.HashMap<>();
+        String query = "SELECT question_id, answer FROM quiz_attempt_answers WHERE attempt_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, attemptId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                answers.put(rs.getInt("question_id"), rs.getString("answer"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return answers;
+    }
     
     // Get attempts for a student
     public static List<QuizAttempt> getStudentAttempts(int studentId) {

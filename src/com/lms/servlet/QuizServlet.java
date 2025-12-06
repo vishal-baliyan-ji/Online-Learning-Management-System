@@ -408,6 +408,11 @@ public class QuizServlet extends HttpServlet {
         if (attemptId > 0) {
             request.setAttribute("quiz", quiz);
             request.setAttribute("attemptId", attemptId);
+            // Also load questions and attempt details so the student view has data
+            List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(quizId);
+            request.setAttribute("questions", questions);
+            QuizAttempt attemptObj = QuizAttemptDAO.getAttemptById(attemptId);
+            request.setAttribute("attempt", attemptObj);
             request.getRequestDispatcher("quiz-attempt.jsp").forward(request, response);
         } else {
             response.sendRedirect("login.jsp");
@@ -452,7 +457,17 @@ public class QuizServlet extends HttpServlet {
                     score += question.getPoints();
                 }
             }
-            
+
+            // Save answers so they can be reviewed later
+            java.util.Map<Integer, String> answersMap = new java.util.HashMap<>();
+            for (QuizQuestion question : questions) {
+                String studentAnswer = request.getParameter("answer_" + question.getQuestionId());
+                if (studentAnswer != null) {
+                    answersMap.put(question.getQuestionId(), studentAnswer);
+                }
+            }
+            QuizAttemptDAO.saveAnswers(attemptId, answersMap);
+
             if (QuizAttemptDAO.submitAttempt(attemptId, score)) {
                 response.sendRedirect("quiz?action=results&attemptId=" + attemptId);
             } else {
@@ -473,10 +488,12 @@ public class QuizServlet extends HttpServlet {
             QuizAttempt attempt = QuizAttemptDAO.getAttemptById(attemptId);
             Quiz quiz = QuizDAO.getQuizById(attempt.getQuizId());
             List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
-            
+            java.util.Map<Integer, String> answers = QuizAttemptDAO.getAnswersForAttempt(attemptId);
+
             request.setAttribute("quiz", quiz);
             request.setAttribute("attempt", attempt);
             request.setAttribute("questions", questions);
+            request.setAttribute("answers", answers);
             request.getRequestDispatcher("quiz-results.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect("login.jsp");

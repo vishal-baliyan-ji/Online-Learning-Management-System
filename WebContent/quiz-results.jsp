@@ -170,29 +170,29 @@
         <div class="details-section">
             <h2>Question Review</h2>
             <c:forEach var="question" items="${questions}" varStatus="status">
-                <c:set var="studentAnswerParam" value="answer_${question.questionId}"/>
-                <c:set var="isCorrect" value="${param[studentAnswerParam] == question.correctAnswer}"/>
-                
+                <c:set var="studentAnswer" value="${answers[question.questionId]}" />
+                <c:set var="isCorrect" value="${studentAnswer == question.correctAnswer}" />
+
                 <div class="question-review ${isCorrect ? 'correct' : 'incorrect'}">
                     <div class="review-question">
                         Question ${status.count}: ${question.questionText} (${question.points} points)
                     </div>
-                    
+
                     <div class="review-answer">
-                        <strong>Your Answer:</strong> 
+                        <strong>Your Answer:</strong>
                         <c:choose>
                             <c:when test="${isCorrect}">
-                                <span class="correct-answer">✓ ${question.correctAnswer}</span>
+                                <span class="correct-answer">✓ ${studentAnswer}</span>
                             </c:when>
                             <c:otherwise>
-                                <span class="incorrect-answer">✗ ${param[studentAnswerParam] != null ? param[studentAnswerParam] : 'Not answered'}</span>
+                                <span class="incorrect-answer">✗ ${studentAnswer != null ? studentAnswer : 'Not answered'}</span>
                             </c:otherwise>
                         </c:choose>
                     </div>
-                    
+
                     <c:if test="${!isCorrect}">
                         <div class="review-answer">
-                            <strong>Correct Answer:</strong> 
+                            <strong>Correct Answer:</strong>
                             <span class="correct-answer">${question.correctAnswer}</span>
                         </div>
                     </c:if>
