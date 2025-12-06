@@ -136,9 +136,9 @@ public class QuizServlet extends HttpServlet {
             throws ServletException, IOException {
         String courseIdParam = request.getParameter("courseId");
         
-        // If courseId is not provided or invalid, show all courses
+        // If courseId is not provided or invalid, redirect to course list
         if (courseIdParam == null || courseIdParam.trim().isEmpty()) {
-            response.sendRedirect("course-list.jsp");
+            response.sendRedirect("course?action=list");
             return;
         }
         
@@ -156,10 +156,10 @@ public class QuizServlet extends HttpServlet {
                     request.getRequestDispatcher("quiz-list.jsp").forward(request, response);
                 }
             } else {
-                response.sendRedirect("course-list.jsp");
+                response.sendRedirect("course?action=list");
             }
         } catch (NumberFormatException e) {
-            response.sendRedirect("course-list.jsp");
+            response.sendRedirect("course?action=list");
         }
     }
     
