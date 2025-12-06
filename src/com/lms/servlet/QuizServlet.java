@@ -46,7 +46,19 @@ public class QuizServlet extends HttpServlet {
                 break;
             case "create":
                 if (isInstructor(user)) {
-                    request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+                    String courseIdParamCreate = request.getParameter("courseId");
+                    // If no courseId provided, send user to course list so they can pick a course
+                    if (courseIdParamCreate == null || courseIdParamCreate.trim().isEmpty()) {
+                        response.sendRedirect("course?action=list");
+                    } else {
+                        try {
+                            int courseIdCreate = Integer.parseInt(courseIdParamCreate.trim());
+                            request.setAttribute("courseId", courseIdCreate);
+                            request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+                        } catch (NumberFormatException nfe) {
+                            response.sendRedirect("course?action=list");
+                        }
+                    }
                 } else {
                     response.sendRedirect("login.jsp");
                 }

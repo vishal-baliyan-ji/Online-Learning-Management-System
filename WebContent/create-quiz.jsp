@@ -104,7 +104,7 @@
             
             <form method="POST" action="quiz">
                 <input type="hidden" name="action" value="create">
-                <input type="hidden" name="courseId" value="${courseId}">
+                <input type="hidden" name="courseId" value="${courseId != null ? courseId : param.courseId}">
                 
                 <div class="form-group">
                     <label>Quiz Title *</label>
