@@ -49,6 +49,7 @@
             <a href="course?action=add" class="btn btn-success">Create Course</a>
             <a href="assignment?action=list" class="btn btn-primary">My Assignments</a>
             <a href="assignment?action=add" class="btn btn-success">Create Assignment</a>
+            <a href="quiz?action=list" class="btn btn-primary">My Quizzes</a>
         </div>
         
         <div class="card">
@@ -70,6 +71,7 @@
                         <td><%= enrollmentCount %></td>
                         <td>
                             <a href="course?action=view&id=<%= course.getCourseId() %>" class="btn btn-primary">View</a>
+                            <a href="quiz?action=list&courseId=<%= course.getCourseId() %>" class="btn btn-info">Quizzes</a>
                             <a href="course?action=edit&id=<%= course.getCourseId() %>" class="btn btn-warning">Edit</a>
                         </td>
                     </tr>

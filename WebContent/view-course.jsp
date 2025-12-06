@@ -64,6 +64,11 @@
                 <% if("admin".equals(userRole) || "instructor".equals(userRole)) { %>
                     <a href="course?action=edit&id=<%= course.getCourseId() %>" class="btn btn-warning">Edit Course</a>
                     <a href="assignment?action=list" class="btn btn-primary">View Assignments</a>
+                    <a href="quiz?action=list&courseId=<%= course.getCourseId() %>" class="btn btn-primary">Manage Quizzes</a>
+                <% } %>
+                
+                <% if("student".equals(userRole)) { %>
+                    <a href="quiz?action=list&courseId=<%= course.getCourseId() %>" class="btn btn-primary">Take Quiz</a>
                 <% } %>
                 
                 <a href="course?action=list" class="btn btn-primary">Back to Courses</a>

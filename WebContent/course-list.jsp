@@ -67,6 +67,7 @@
                         <td><%= course.getDescription() != null ? course.getDescription().substring(0, Math.min(50, course.getDescription().length())) + "..." : "N/A" %></td>
                         <td>
                             <a href="course?action=view&id=<%= course.getCourseId() %>" class="btn btn-primary">View</a>
+                            <a href="quiz?action=list&courseId=<%= course.getCourseId() %>" class="btn btn-info">Quizzes</a>
                             <% if("admin".equals(userRole) || "instructor".equals(userRole)) { %>
                                 <a href="course?action=edit&id=<%= course.getCourseId() %>" class="btn btn-warning">Edit</a>
                                 <a href="course?action=delete&id=<%= course.getCourseId() %>" 
