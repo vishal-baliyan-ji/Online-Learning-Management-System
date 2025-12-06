@@ -192,8 +192,8 @@
                 
                 <c:forEach var="attempt" items="${attempts}">
                     <tr>
-                        <td><span class="student-name">${attempt.studentId}</span></td>
-                        <td>-</td>
+                        <td><span class="student-name">${studentMap[attempt.studentId] != null ? studentMap[attempt.studentId].name : attempt.studentId}</span></td>
+                        <td>${studentMap[attempt.studentId] != null ? studentMap[attempt.studentId].email : '-'}</td>
                         <td>
                             <fmt:formatDate value="${attempt.startedAt}" pattern="MMM dd, yyyy HH:mm"/>
                         </td>

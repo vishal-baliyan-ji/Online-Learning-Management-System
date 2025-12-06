@@ -3,6 +3,7 @@ package com.lms.servlet;
 import com.lms.dao.QuizDAO;
 import com.lms.dao.QuizQuestionDAO;
 import com.lms.dao.QuizAttemptDAO;
+import com.lms.dao.UserDAO;
 import com.lms.model.Quiz;
 import com.lms.model.QuizQuestion;
 import com.lms.model.QuizAttempt;
@@ -192,7 +193,24 @@ public class QuizServlet extends HttpServlet {
         }
         
         if (isInstructor(user)) {
+            // Load attempts for instructor view
+            java.util.List<QuizAttempt> attempts = QuizAttemptDAO.getQuizAttempts(quizId);
+            // Build student info map
+            UserDAO userDAO = new UserDAO();
+            java.util.Map<Integer, com.lms.model.User> studentMap = new java.util.HashMap<>();
+            if (attempts != null) {
+                for (QuizAttempt a : attempts) {
+                    int sid = a.getStudentId();
+                    if (!studentMap.containsKey(sid)) {
+                        com.lms.model.User u = userDAO.getUserById(sid);
+                        studentMap.put(sid, u);
+                    }
+                }
+            }
+
             request.setAttribute("quiz", quiz);
+            request.setAttribute("attempts", attempts);
+            request.setAttribute("studentMap", studentMap);
             request.getRequestDispatcher("quiz-detail-instructor.jsp").forward(request, response);
         } else {
             request.setAttribute("quiz", quiz);
