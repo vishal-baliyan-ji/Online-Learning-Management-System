@@ -179,26 +179,39 @@ public class QuizServlet extends HttpServlet {
     
     private void handleCreateQuiz(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int courseId = Integer.parseInt(request.getParameter("courseId") != null ? 
-                                      request.getParameter("courseId") : "0");
-        String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        int durationMinutes = Integer.parseInt(request.getParameter("durationMinutes") != null ? 
-                                             request.getParameter("durationMinutes") : "30");
-        int maxScore = Integer.parseInt(request.getParameter("maxScore") != null ? 
-                                       request.getParameter("maxScore") : "100");
-        int passingScore = Integer.parseInt(request.getParameter("passingScore") != null ? 
-                                           request.getParameter("passingScore") : "60");
-        
-        Quiz quiz = new Quiz(courseId, title, description, durationMinutes, maxScore, passingScore, false);
-        int quizId = QuizDAO.createQuiz(quiz);
-        
-        if (quizId > 0) {
-            request.setAttribute("quizId", quizId);
-            request.setAttribute("courseId", courseId);
-            response.sendRedirect("quiz?action=edit&quizId=" + quizId);
-        } else {
-            request.setAttribute("error", "Failed to create quiz");
+        try {
+            String courseIdParam = request.getParameter("courseId");
+            int courseId = (courseIdParam != null && !courseIdParam.trim().isEmpty()) ? 
+                          Integer.parseInt(courseIdParam) : 0;
+            
+            String title = request.getParameter("title");
+            String description = request.getParameter("description");
+            
+            String durationParam = request.getParameter("durationMinutes");
+            int durationMinutes = (durationParam != null && !durationParam.trim().isEmpty()) ? 
+                                 Integer.parseInt(durationParam) : 30;
+            
+            String maxScoreParam = request.getParameter("maxScore");
+            int maxScore = (maxScoreParam != null && !maxScoreParam.trim().isEmpty()) ? 
+                          Integer.parseInt(maxScoreParam) : 100;
+            
+            String passingScoreParam = request.getParameter("passingScore");
+            int passingScore = (passingScoreParam != null && !passingScoreParam.trim().isEmpty()) ? 
+                              Integer.parseInt(passingScoreParam) : 60;
+            
+            Quiz quiz = new Quiz(courseId, title, description, durationMinutes, maxScore, passingScore, false);
+            int quizId = QuizDAO.createQuiz(quiz);
+            
+            if (quizId > 0) {
+                request.setAttribute("quizId", quizId);
+                request.setAttribute("courseId", courseId);
+                response.sendRedirect("quiz?action=edit&quizId=" + quizId);
+            } else {
+                request.setAttribute("error", "Failed to create quiz");
+                request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid input: Please check all numeric fields");
             request.getRequestDispatcher("create-quiz.jsp").forward(request, response);
         }
     }
@@ -223,61 +236,95 @@ public class QuizServlet extends HttpServlet {
     
     private void handleUpdateQuiz(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int quizId = Integer.parseInt(request.getParameter("quizId") != null ? 
-                                     request.getParameter("quizId") : "0");
-        String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        int durationMinutes = Integer.parseInt(request.getParameter("durationMinutes") != null ? 
-                                             request.getParameter("durationMinutes") : "30");
-        int maxScore = Integer.parseInt(request.getParameter("maxScore") != null ? 
-                                       request.getParameter("maxScore") : "100");
-        int passingScore = Integer.parseInt(request.getParameter("passingScore") != null ? 
-                                           request.getParameter("passingScore") : "60");
-        
-        Quiz quiz = new Quiz();
-        quiz.setQuizId(quizId);
-        quiz.setTitle(title);
-        quiz.setDescription(description);
-        quiz.setDurationMinutes(durationMinutes);
-        quiz.setMaxScore(maxScore);
-        quiz.setPassingScore(passingScore);
-        
-        if (QuizDAO.updateQuiz(quiz)) {
-            response.sendRedirect("quiz?action=edit&quizId=" + quizId);
-        } else {
-            request.setAttribute("error", "Failed to update quiz");
+        try {
+            String quizIdParam = request.getParameter("quizId");
+            int quizId = (quizIdParam != null && !quizIdParam.trim().isEmpty()) ? 
+                        Integer.parseInt(quizIdParam) : 0;
+            
+            String title = request.getParameter("title");
+            String description = request.getParameter("description");
+            
+            String durationParam = request.getParameter("durationMinutes");
+            int durationMinutes = (durationParam != null && !durationParam.trim().isEmpty()) ? 
+                                 Integer.parseInt(durationParam) : 30;
+            
+            String maxScoreParam = request.getParameter("maxScore");
+            int maxScore = (maxScoreParam != null && !maxScoreParam.trim().isEmpty()) ? 
+                          Integer.parseInt(maxScoreParam) : 100;
+            
+            String passingScoreParam = request.getParameter("passingScore");
+            int passingScore = (passingScoreParam != null && !passingScoreParam.trim().isEmpty()) ? 
+                              Integer.parseInt(passingScoreParam) : 60;
+            
+            Quiz quiz = new Quiz();
+            quiz.setQuizId(quizId);
+            quiz.setTitle(title);
+            quiz.setDescription(description);
+            quiz.setDurationMinutes(durationMinutes);
+            quiz.setMaxScore(maxScore);
+            quiz.setPassingScore(passingScore);
+            
+            if (QuizDAO.updateQuiz(quiz)) {
+                response.sendRedirect("quiz?action=edit&quizId=" + quizId);
+            } else {
+                request.setAttribute("error", "Failed to update quiz");
+                handleEditQuiz(request, response, user);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid input: Please check all numeric fields");
             handleEditQuiz(request, response, user);
         }
     }
     
     private void handleAddQuestion(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int quizId = Integer.parseInt(request.getParameter("quizId") != null ? 
-                                     request.getParameter("quizId") : "0");
-        String questionText = request.getParameter("questionText");
-        String questionType = request.getParameter("questionType");
-        String optionA = request.getParameter("optionA");
-        String optionB = request.getParameter("optionB");
-        String optionC = request.getParameter("optionC");
-        String optionD = request.getParameter("optionD");
-        String correctAnswer = request.getParameter("correctAnswer");
-        int points = Integer.parseInt(request.getParameter("points") != null ? 
-                                     request.getParameter("points") : "1");
-        
-        int questionOrder = QuizQuestionDAO.countQuestions(quizId) + 1;
-        
-        QuizQuestion question = new QuizQuestion(quizId, questionText, questionType, 
-                                                 optionA, optionB, optionC, optionD, 
-                                                 correctAnswer, points, questionOrder);
-        
-        int questionId = QuizQuestionDAO.addQuestion(question);
-        if (questionId > 0) {
-            request.setAttribute("success", "Question added successfully");
-        } else {
-            request.setAttribute("error", "Failed to add question");
+        try {
+            String quizIdParam = request.getParameter("quizId");
+            int quizId = (quizIdParam != null && !quizIdParam.trim().isEmpty()) ? 
+                        Integer.parseInt(quizIdParam) : 0;
+            
+            String questionText = request.getParameter("questionText");
+            String questionType = request.getParameter("questionType");
+            String optionA = request.getParameter("optionA");
+            String optionB = request.getParameter("optionB");
+            String optionC = request.getParameter("optionC");
+            String optionD = request.getParameter("optionD");
+            String correctAnswer = request.getParameter("correctAnswer");
+            
+            String pointsParam = request.getParameter("points");
+            int points = (pointsParam != null && !pointsParam.trim().isEmpty()) ? 
+                        Integer.parseInt(pointsParam) : 1;
+            
+            int questionOrder = QuizQuestionDAO.countQuestions(quizId) + 1;
+            
+            QuizQuestion question = new QuizQuestion(quizId, questionText, questionType, 
+                                                     optionA, optionB, optionC, optionD, 
+                                                     correctAnswer, points, questionOrder);
+            
+            int questionId = QuizQuestionDAO.addQuestion(question);
+            if (questionId > 0) {
+                request.setAttribute("success", "Question added successfully");
+            } else {
+                request.setAttribute("error", "Failed to add question");
+            }
+            
+            response.sendRedirect("quiz?action=edit&quizId=" + quizId);
+        } catch (NumberFormatException e) {
+            int quizId = 0;
+            try {
+                String quizIdParam = request.getParameter("quizId");
+                if (quizIdParam != null && !quizIdParam.trim().isEmpty()) {
+                    quizId = Integer.parseInt(quizIdParam);
+                }
+            } catch (Exception ignore) {}
+            
+            request.setAttribute("error", "Invalid input: Please check all numeric fields");
+            if (quizId > 0) {
+                response.sendRedirect("quiz?action=edit&quizId=" + quizId);
+            } else {
+                response.sendRedirect("quiz?action=list");
+            }
         }
-        
-        response.sendRedirect("quiz?action=edit&quizId=" + quizId);
     }
     
     private void handlePublishQuiz(HttpServletRequest request, HttpServletResponse response, User user) 
@@ -341,60 +388,78 @@ public class QuizServlet extends HttpServlet {
     
     private void handleSubmitAttempt(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int attemptId = Integer.parseInt(request.getParameter("attemptId") != null ? 
-                                        request.getParameter("attemptId") : "0");
-        
-        QuizAttempt attempt = QuizAttemptDAO.getAttemptById(attemptId);
-        if (attempt == null) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
-        
-        // Calculate score based on answers
-        List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
-        int score = 0;
-        
-        for (QuizQuestion question : questions) {
-            String studentAnswer = request.getParameter("answer_" + question.getQuestionId());
-            if (studentAnswer != null && studentAnswer.equals(question.getCorrectAnswer())) {
-                score += question.getPoints();
+        try {
+            String attemptIdParam = request.getParameter("attemptId");
+            int attemptId = (attemptIdParam != null && !attemptIdParam.trim().isEmpty()) ? 
+                           Integer.parseInt(attemptIdParam) : 0;
+            
+            QuizAttempt attempt = QuizAttemptDAO.getAttemptById(attemptId);
+            if (attempt == null) {
+                response.sendRedirect("login.jsp");
+                return;
             }
-        }
-        
-        if (QuizAttemptDAO.submitAttempt(attemptId, score)) {
-            response.sendRedirect("quiz?action=results&attemptId=" + attemptId);
-        } else {
+            
+            // Calculate score based on answers
+            List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
+            int score = 0;
+            
+            for (QuizQuestion question : questions) {
+                String studentAnswer = request.getParameter("answer_" + question.getQuestionId());
+                if (studentAnswer != null && studentAnswer.equals(question.getCorrectAnswer())) {
+                    score += question.getPoints();
+                }
+            }
+            
+            if (QuizAttemptDAO.submitAttempt(attemptId, score)) {
+                response.sendRedirect("quiz?action=results&attemptId=" + attemptId);
+            } else {
+                response.sendRedirect("login.jsp");
+            }
+        } catch (NumberFormatException e) {
             response.sendRedirect("login.jsp");
         }
     }
     
     private void handleViewResults(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int attemptId = Integer.parseInt(request.getParameter("attemptId") != null ? 
-                                        request.getParameter("attemptId") : "0");
-        
-        QuizAttempt attempt = QuizAttemptDAO.getAttemptById(attemptId);
-        Quiz quiz = QuizDAO.getQuizById(attempt.getQuizId());
-        List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
-        
-        request.setAttribute("quiz", quiz);
-        request.setAttribute("attempt", attempt);
-        request.setAttribute("questions", questions);
-        request.getRequestDispatcher("quiz-results.jsp").forward(request, response);
+        try {
+            String attemptIdParam = request.getParameter("attemptId");
+            int attemptId = (attemptIdParam != null && !attemptIdParam.trim().isEmpty()) ? 
+                           Integer.parseInt(attemptIdParam) : 0;
+            
+            QuizAttempt attempt = QuizAttemptDAO.getAttemptById(attemptId);
+            Quiz quiz = QuizDAO.getQuizById(attempt.getQuizId());
+            List<QuizQuestion> questions = QuizQuestionDAO.getQuestionsByQuiz(attempt.getQuizId());
+            
+            request.setAttribute("quiz", quiz);
+            request.setAttribute("attempt", attempt);
+            request.setAttribute("questions", questions);
+            request.getRequestDispatcher("quiz-results.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect("login.jsp");
+        }
     }
     
     private void handleGradeAttempt(HttpServletRequest request, HttpServletResponse response, User user) 
             throws ServletException, IOException {
-        int attemptId = Integer.parseInt(request.getParameter("attemptId") != null ? 
-                                        request.getParameter("attemptId") : "0");
-        int score = Integer.parseInt(request.getParameter("score") != null ? 
-                                    request.getParameter("score") : "0");
-        String feedback = request.getParameter("feedback") != null ? 
-                         request.getParameter("feedback") : "";
-        
-        if (QuizAttemptDAO.gradeAttempt(attemptId, score, feedback)) {
-            response.sendRedirect("quiz?action=results&attemptId=" + attemptId);
-        } else {
+        try {
+            String attemptIdParam = request.getParameter("attemptId");
+            int attemptId = (attemptIdParam != null && !attemptIdParam.trim().isEmpty()) ? 
+                           Integer.parseInt(attemptIdParam) : 0;
+            
+            String scoreParam = request.getParameter("score");
+            int score = (scoreParam != null && !scoreParam.trim().isEmpty()) ? 
+                       Integer.parseInt(scoreParam) : 0;
+            
+            String feedback = request.getParameter("feedback") != null ? 
+                             request.getParameter("feedback") : "";
+            
+            if (QuizAttemptDAO.gradeAttempt(attemptId, score, feedback)) {
+                response.sendRedirect("quiz?action=results&attemptId=" + attemptId);
+            } else {
+                response.sendRedirect("login.jsp");
+            }
+        } catch (NumberFormatException e) {
             response.sendRedirect("login.jsp");
         }
     }
